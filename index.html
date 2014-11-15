@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <title>NodeJS Chat</title>
+    <style>
+      	* { margin: 0; padding: 0; box-sizing: border-box; }
+      	body { font: 13px Helvetica, Arial; } 
+      	form { padding: 3px; position: fixed; bottom: 0; width: 100%; }
+	      #messages li {class: list-group-item; width:100%; padding: 5px 10px;}
+        #messages li:nth-child(odd) { background: #909094; }
+    </style>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+    function setName() {
+
+      if(!$('#username').is(':visible')) {
+        $('#uname').hide();
+        $('#username').val('');
+        $('#username').show();
+        $('#username').focus();
+        $('#sendmsg').attr('disabled', true);
+      } else {
+        if($('#username').val().trim().length == 0)
+          return;
+        $('#uname').show();
+        $('#username').hide();
+        $('#uname').html($('#username').val());
+        $('#setname').html('Change Name');
+        $('#sendmsg').removeAttr('disabled');
+      }
+    }
+    </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"></script>
+  </head>
+  <body>
+    <div style="position:fixed; width:100%; height:60px; display:inline-block; white-space: nowrap;" class="alert alert-info" role="alert" >
+      <div id="nameholder" style="width:50%; float:left;">
+        <div id="nameplate" style="width:80%; float:left;">
+          <input type="text" class="form-control" id="username"  />
+          <span id="uname"></span>
+        </div>
+        <button id="setname" class="btn btn-default" style="float:right;" onclick="setName();">Set Name</button>
+      </div>
+      <span id="connected" style="float:right;" />
+    </div>
+    <ul id="messages" class="list-group" style="padding: 60px 0px; height:80%;"></ul>
+    <form class="form-inline" action="">
+      <input type="text" class="form-control" id="message" style="width:90%;" />
+      <button id="sendmsg" type="submit" class="btn btn-default" style="width:9%;" disabled="true">Send</button>
+    </form>
+    <script>
+    var socket = io();
+    $('form').submit(function(){
+		  if($('#message').val().trim().length > 0) {
+        var datatosend = {};
+        datatosend['username'] = $('#username').val();
+        datatosend['message'] = $('#message').val();
+        socket.emit('chat_message',  datatosend);
+        $('#message').val('');
+		  }
+		  return false;
+    });
+          
+	  socket.on('chat_message', function(msg) {
+      var injecthtml = "<li tabindex=1><b>" + msg['username'] + "</b> : &nbsp;" + msg['message'] + "</li>";
+      $('#messages').append($(injecthtml));
+      $('#messages li').last().focus();
+		  $('#message').focus();
+    });
+
+	  socket.on('connected', function(msg) {
+		  $('#connected').html('Number of connected users : ' + msg);
+	  });
+
+    socket.on('disconnected', function(msg) {
+ 		 $('#connected').html('Number of connected users : ' + msg);
+	  });
+  </script>
+  </body>
+</html>
